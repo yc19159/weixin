@@ -1,19 +1,35 @@
-const formatTime = date => {
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  const hour = date.getHours()
-  const minute = date.getMinutes()
-  const second = date.getSeconds()
+/**
+ * 请求网络
+ */
+function request( url, page, success, fail ) {
+  if( typeof success != 'function' || typeof fail != 'function' ) {
+    return
+  }
+  // 6da61d257ff0fc4f056715873aaed3e3
+  var app = getApp()
+  wx.request( {
+    url: url,
+    data: {
+      // key: "6da61d257ff0fc4f056715873aaed3e3",
+      count:100,
+      page: page,
+      // pagesize: app.globalData.pagesize
+    },
+    success: function( res ) {
+      // if( res.data.error_code == 0 ) {
+      //   success( res.data )
+          success(res)
+      // } else {
+      //   fail( res )
+      // }
+    },
+    fail: function() {
+      fail( '网络错误' )
+    }
 
-  return [year, month, day].map(formatNumber).join('/') + ' ' + [hour, minute, second].map(formatNumber).join(':')
-}
-
-const formatNumber = n => {
-  n = n.toString()
-  return n[1] ? n : '0' + n
+  })
 }
 
 module.exports = {
-  formatTime: formatTime
+  request: request
 }

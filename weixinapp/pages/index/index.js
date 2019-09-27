@@ -1,54 +1,82 @@
-//index.js
-//获取应用实例
-const app = getApp()
+var http = require( '../../utils/util' )
+var app = getApp()
+// var url = 'http://japi.juhe.cn/joke/content/text.from'
+// var url = 'https://www.apiopen.top/satinGodApi'
+var url = 'https://api.apiopen.top/getJoke';
+// https://api.apiopen.top/getJoke?page=1&count=100
 
-Page({
+Page( {
   data: {
-    motto: 'Hello World',
-    userInfo: {},
-    hasUserInfo: false,
-    canIUse: wx.canIUse('button.open-type.getUserInfo')
+    page: 1,
+    loadingHide: false,
+    hideFooter: true,
+    jokeList: [],
   },
-  //事件处理函数
-  bindViewTap: function() {
-    wx.navigateTo({
-      url: '../logs/logs'
-    })
-  },
-  onLoad: function () {
-    if (app.globalData.userInfo) {
-      this.setData({
-        userInfo: app.globalData.userInfo,
-        hasUserInfo: true
+  onLoad: function( options ) {
+    // 页面初始化 options为页面跳转所带来的参数
+    var that = this
+    //请求笑话列表
+    http.request( url, this.data.page, function( dataJson ) {
+      that.setData({
+        jokeList: that.data.jokeList.concat( dataJson.data.result),
+        loadingHide: true
       })
-    } else if (this.data.canIUse){
-      // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
-      // 所以此处加入 callback 以防止这种情况
-      app.userInfoReadyCallback = res => {
-        this.setData({
-          userInfo: res.userInfo,
-          hasUserInfo: true
-        })
-      }
-    } else {
-      // 在没有 open-type=getUserInfo 版本的兼容处理
-      wx.getUserInfo({
-        success: res => {
-          app.globalData.userInfo = res.userInfo
-          this.setData({
-            userInfo: res.userInfo,
-            hasUserInfo: true
-          })
-        }
+      console.log(dataJson.data.result)
+    }, 
+    function( reason ) {
+      console.log( reason )
+      that.setData( {
+        loadingHide: true
       })
-    }
-  },
-  getUserInfo: function(e) {
-    console.log(e)
-    app.globalData.userInfo = e.detail.userInfo
-    this.setData({
-      userInfo: e.detail.userInfo,
-      hasUserInfo: true
     })
-  }
+
+  },
+
+  /**
+   * 下拉刷新
+   */
+  onPullDownRefresh() {
+    // var that = this
+    // this.setData( {
+    //   page: 1,
+    //   jokeList:[]
+    // })
+    // http.request( url, this.data.page, function( dataJson ) {
+    //   that.setData( {
+    //     jokeList: that.data.jokeList.concat( dataJson.result.data )
+    //   })
+    //   wx.stopPullDownRefresh()
+    // }, function( reason ) {
+    //   console.log( reason )
+    //   wx.stopPullDownRefresh()
+    // })
+  },
+
+  /**
+   * 滑动到底部加载更多
+   */
+  loadMore() {
+    //请求笑话列表
+    var that = this
+    //显示footer
+    this.setData( {
+      hideFooter: !this.data.hideFooter
+    })
+    //请求笑话列表
+    http.request( url, ++this.data.page, function( dataJson ) {
+      that.setData( {
+        jokeList: that.data.jokeList.concat( dataJson.data ),
+        hideFooter: !that.data.hideFooter
+      })
+
+    }, function( reason ) {
+      console.log( reason )
+      that.setData( {
+        hideFooter: !that.data.hideFooter
+      })
+    })
+
+
+  },
+
 })
